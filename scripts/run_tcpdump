@@ -1,2 +1,8 @@
 #!/bin/bash
-sudo tcpdump -i any -nn port 4433 -A
+if [ $# -eq 0 ]; then
+  echo "usage:"
+  echo "run_tcpdump <port>"
+  exit 1
+fi
+
+sudo tcpdump -i any -nn port $1 -A
