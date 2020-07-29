@@ -1,0 +1,3 @@
+#!/bin/bash
+export TLS_CA_FILE=config/cert.pem
+export TLS_KEY_FILE=config/key.pem

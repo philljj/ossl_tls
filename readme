@@ -1,0 +1,38 @@
+About:
+  This is a toy OpenSSL TLS client/server implementation.
+  This was written using OpenSSL 1.0.2o
+  This is for fun and education.
+  This is not production ready TLS with OpenSSL 1.1.1
+
+Setup:
+  1. run configure script
+  2. run build script
+  3. drink espresso
+  4. that's it
+
+Notes:
+  This requires TLS_CA_FILE, TLS_KEY_FILE env vars are set.
+  Source this file "scripts/set_run_env" to set env.
+
+  Use scripts to do little tests, such as:
+    $ ./scripts/test_ciphers `hostname` 7777 | grep worked
+    info: cipher AES256-GCM-SHA384 worked
+    info: cipher AES128-GCM-SHA256 worked
+    info: cipher AES256-SHA256 worked
+    info: cipher AES128-SHA256 worked
+    info: cipher AES256-SHA worked
+    info: cipher CAMELLIA256-SHA worked
+    info: cipher AES128-SHA worked
+    info: cipher CAMELLIA128-SHA worked
+    info: cipher DES-CBC3-SHA worked
+
+  and:
+    $ ./scripts/test_protos `hostname` 7777
+    trying ssl3
+    info: proto ssl3 failed
+    trying tls1
+    info: proto tls1 failed
+    trying tls1_1
+    info: proto tls1_1 failed
+    trying tls1_2
+    info: proto tls1_2 worked

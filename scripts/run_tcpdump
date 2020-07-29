@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo tcpdump -i any -nn port 4433 -A

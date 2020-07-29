@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# A tiny script to check what ciphers are allowed with TLSv1_2
+# against a given server at host:port
+#
+# attribution: 
+#   https://superuser.com/questions/109213/how-do-i-list-the-ssl-tls-cipher-suites-a-particular-website-offers/224263#224263
+#
+
+if [ $# -ne 2 ]; then
+  echo "usage:"
+  echo "test_ciphers <host> <port>"
+  exit 1
+fi
+
+host=$1
+port=$2
+cipher_list=`openssl ciphers | tr ':' ' '`
+
+for cipher in $cipher_list; do
+  echo "trying $cipher"
+  out=$(echo "Q" | openssl s_client -cipher $cipher -connect $host:$port -tls1_2 2>&1)
+
+  if [[ $out =~ "Cipher is (NONE)" ]]; then
+    echo "info: cipher $cipher failed"
+    continue
+  fi 
+
+  if [[ $out =~ "Cipher is $cipher" ]]; then
+    echo "info: cipher $cipher worked"
+    continue
+  fi
+done

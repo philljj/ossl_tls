@@ -1,0 +1,26 @@
+#!/bin/bash
+
+run_dir="run"
+bin_dir="run/bin"
+config_dir="run/config"
+
+function dir_exists {
+  if [ $# -eq 0 ]; then
+    echo "dir_exists requires an arg"
+    exit 1
+  fi
+
+  dir=$1
+
+  if [ ! -d $dir ]; then
+    echo "run the configure script before trying to build"
+    exit 1
+  fi
+}
+
+dir_exists $run_dir
+dir_exists $bin_dir
+dir_exists $config_dir
+
+g++ -Wall -Wextra src/server.cpp src/ossl_tls.cpp -lssl -lcrypto -o $bin_dir/tls_server
+g++ -Wall -Wextra src/client.cpp src/ossl_tls.cpp -lssl -lcrypto -o $bin_dir/tls_client
