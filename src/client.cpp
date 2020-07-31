@@ -8,23 +8,7 @@
 #include <arpa/inet.h>
 
 #include "ossl_tls.h"
-
-class SockGuard
-{
-    public:
-    SockGuard() : sock_fd_(0) { }
-    ~SockGuard() {
-        if (sock_fd_) {
-            std::cout << "info: closing sock: " << sock_fd_ << std::endl;
-            close(sock_fd_);
-            sock_fd_ = 0;
-        }
-    }
-
-    void guard(int sock_fd) { sock_fd_ = sock_fd; }
-
-    int sock_fd_;
-};
+#include "misc_guards.h"
 
 static int  new_client_socket(const char * host, const char * port);
 static void print_usage_and_die(void) __attribute__((__noreturn__));
@@ -168,7 +152,10 @@ static void
 print_usage_and_die(void)
 {
     std::cerr << "usage:" << std::endl;
-    std::cerr << "  tls_client <hostname> <port>" << std::endl;
+    std::cerr << "  tls_client <hostname> <port> [msg]" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "A stop message will tell the server to stop. E.g.:" << std::endl;
+    std::cerr << "  tls_client `hostname` <port> stop" << std::endl;
 
     exit(EXIT_FAILURE);
 }

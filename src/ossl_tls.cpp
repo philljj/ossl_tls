@@ -236,7 +236,7 @@ ossl_log_error(const char *   what)
 
     while ((ec = ERR_get_error())) {
         ERR_error_string(ec, errstr);
-        std::cout << "error: " << what << ": " << errstr << std::endl;
+        std::cerr << "error: " << what << ": " << errstr << std::endl;
     }
 
     return;
@@ -294,12 +294,12 @@ tls::ossl_connect(SSL *&         ssl,
 
     if (ssl) {
         // This shouldn't happen. We've stepped on an existing SSL session.
-        std::cout << "error: SSL object already exists" << std::endl;
+        std::cerr << "error: SSL object already exists" << std::endl;
         return false;
     }
 
     if (sock_fd <= 0) {
-        std::cout << "error: ssl_connect without socket handle" << std::endl;
+        std::cerr << "error: ssl_connect without socket handle" << std::endl;
         return false;
     }
 
@@ -311,7 +311,7 @@ tls::ossl_connect(SSL *&         ssl,
 
     if (!ssl) {
         ossl_get_err_str(errstr);
-        std::cout << "error: SSL_new failed: " << errstr << std::endl;
+        std::cerr << "error: SSL_new failed: " << errstr << std::endl;
         return false;
     }
 
@@ -319,7 +319,7 @@ tls::ossl_connect(SSL *&         ssl,
 
     if (!SSL_set_fd(ssl, sock_fd)) {
         ossl_get_err_str(errstr);
-        std::cout << "error: SSL_set_fd failed: " << errstr << std::endl;
+        std::cerr << "error: SSL_set_fd failed: " << errstr << std::endl;
         return false;
     }
 
@@ -327,7 +327,7 @@ tls::ossl_connect(SSL *&         ssl,
 
     if (rc <= 0) {
         ossl_get_err_str(errstr);
-        std::cout << "error: ssl_connect failed: " << errstr << std::endl;
+        std::cerr << "error: ssl_connect failed: " << errstr << std::endl;
         return false;
     }
 
@@ -339,7 +339,7 @@ tls::ossl_connect(SSL *&         ssl,
 
     if (!peer_cert) {
         ossl_get_err_str(errstr);
-        std::cout << "error: could not get a peer cert: " << errstr << std::endl;
+        std::cerr << "error: could not get a peer cert: " << errstr << std::endl;
         return false;
     }
 
@@ -348,7 +348,7 @@ tls::ossl_connect(SSL *&         ssl,
     if (verify_peer) {
         if (SSL_get_verify_result(ssl) != X509_V_OK) {
             ossl_get_err_str(errstr);
-            std::cout << "error: peer cert verify failed: " << errstr
+            std::cerr << "error: peer cert verify failed: " << errstr
                    << std::endl;
             return false;
         }
@@ -370,18 +370,18 @@ tls::ossl_connect(SSL *&         ssl,
             //  cout << "info: host " << host << " and server "
             //         << peer_name << " match" << endl;
         }
-        else if (rc == 0) { 
-            std::cout << "error: host and server name don't match: "
+        else if (rc == 0) {
+            std::cerr << "error: host and server name don't match: "
                     << "expected: " << host << ", "
                     << "received: " << peer_name << std::endl;
             return false;
         }
         else if (rc == -1) {
-            std::cout << "error: X509_check_host failed: internal error" << std::endl;
+            std::cerr << "error: X509_check_host failed: internal error" << std::endl;
             return false;
         }
         else {
-            std::cout << "error: X509_check_host failed: invalid input" << std::endl;
+            std::cerr << "error: X509_check_host failed: invalid input" << std::endl;
             return false;
         }
     }
@@ -403,12 +403,12 @@ tls::ossl_accept(SSL *& ssl,
 
     if (ssl) {
         // This shouldn't happen. We've stepped on an existing SSL session.
-        std::cout << "error: SSL object already exists" << std::endl;
+        std::cerr << "error: SSL object already exists" << std::endl;
         return false;
     }
 
     if (sock_fd <= 0) {
-        std::cout << "error: ssl_accept without socket handle" << std::endl;
+        std::cerr << "error: ssl_accept without socket handle" << std::endl;
         return false;
     }
 
@@ -416,7 +416,7 @@ tls::ossl_accept(SSL *& ssl,
     char errstr[256];
 
     if (!server_ctx) {
-        std::cout << "error: server_ctx not initialized" << std::endl;
+        std::cerr << "error: server_ctx not initialized" << std::endl;
         return false;
     }
 
@@ -424,7 +424,7 @@ tls::ossl_accept(SSL *& ssl,
 
     if (!ssl) {
         ossl_get_err_str(errstr);
-        std::cout << "error: SSL_new failed: " << errstr << std::endl;
+        std::cerr << "error: SSL_new failed: " << errstr << std::endl;
         return false;
     }
 
@@ -432,7 +432,7 @@ tls::ossl_accept(SSL *& ssl,
 
     if (!SSL_set_fd(ssl, sock_fd)) {
         ossl_get_err_str(errstr);
-        std::cout << "error: SSL_set_fd failed: " << errstr << std::endl;
+        std::cerr << "error: SSL_set_fd failed: " << errstr << std::endl;
         return false;
     }
 
@@ -440,7 +440,7 @@ tls::ossl_accept(SSL *& ssl,
 
     if (rc <= 0) {
         ossl_get_err_str(errstr);
-        std::cout << "error: ssl_accept failed: " << errstr << std::endl;
+        std::cerr << "error: ssl_accept failed: " << errstr << std::endl;
         return false;
     }
 
@@ -536,7 +536,7 @@ tls::ossl_send(SSL *&         w_ssl,
     switch (SSL_get_error(w_ssl, tcs)) {
     case SSL_ERROR_NONE:
         // This shouldn't happen.
-        std::cout << "error: SSL_write returned "
+        std::cerr << "error: SSL_write returned "
                << tcs << " was expecting " << w_len
                << ", " << w_total
                << " bytes transferred." << std::endl;
@@ -558,7 +558,7 @@ tls::ossl_send(SSL *&         w_ssl,
         // fatal error has occurred on a connection i.e. if
         // SSL_get_error() has returned SSL_ERROR_SYSCALL or SSL_ERROR_SSL.
         errsv = errno;
-        std::cout << "error: SSL_write failed: SSL_ERROR_SYSCALL: " << strerror(errsv) << std::endl;
+        std::cerr << "error: SSL_write failed: SSL_ERROR_SYSCALL: " << strerror(errsv) << std::endl;
         break;
 
     case SSL_ERROR_SSL:
@@ -566,7 +566,7 @@ tls::ossl_send(SSL *&         w_ssl,
         break;
 
     default:
-        std::cout << "error: SSL_write failed: unknown error" << std::endl;
+        std::cerr << "error: SSL_write failed: unknown error" << std::endl;
         break;
     }
 
@@ -619,7 +619,7 @@ tls::ossl_recv(SSL *&  r_ssl,
     switch (SSL_get_error(r_ssl, tcs)) {
     case SSL_ERROR_NONE:
         // This shouldn't happen.
-        std::cout << "error: SSL_read returned "
+        std::cerr << "error: SSL_read returned "
                << tcs << " was expecting " << r_len
                << ", " << r_total
                << " bytes transferred." << std::endl;
@@ -640,7 +640,7 @@ tls::ossl_recv(SSL *&  r_ssl,
         // Note that SSL_shutdown() must not be called if a previous
         // fatal error has occurred on a connection i.e. if
         // SSL_get_error() has returned SSL_ERROR_SYSCALL or SSL_ERROR_SSL.
-        std::cout << "error: SSL_read failed: SSL_ERROR_SYSCALL: " << strerror(errsv) << std::endl;
+        std::cerr << "error: SSL_read failed: SSL_ERROR_SYSCALL: " << strerror(errsv) << std::endl;
         break;
 
     case SSL_ERROR_SSL:
@@ -648,7 +648,7 @@ tls::ossl_recv(SSL *&  r_ssl,
         break;
 
     default:
-        std::cout << "error: SSL_read failed: unknown error" << std::endl;
+        std::cerr << "error: SSL_read failed: unknown error" << std::endl;
         break;
     }
 

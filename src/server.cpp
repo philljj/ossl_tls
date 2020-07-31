@@ -7,24 +7,7 @@
 #include <arpa/inet.h>
 
 #include "ossl_tls.h"
-
-class SockGuard
-{
-    public:
-    SockGuard() : sock_fd_(0) { }
-    ~SockGuard() {
-        if (sock_fd_) {
-            std::cout << "info: closing sock: " << sock_fd_ << std::endl;
-            close(sock_fd_);
-            sock_fd_ = 0;
-        }
-    }
-
-    void guard(int sock_fd) { sock_fd_ = sock_fd; }
-    void release(void) { sock_fd_ = 0; }
-
-    int sock_fd_;
-};
+#include "misc_guards.h"
 
 static void  print_usage_and_die(void) __attribute__((__noreturn__));
 static int   new_server_socket(int port);
@@ -60,7 +43,10 @@ main(int    argc,
         return EXIT_FAILURE;
     }
 
-    char * msg_buf = (char * ) malloc(TLSPP_MSG_LEN + 1);
+    char * msg_buf = static_cast<char *>(malloc(TLSPP_MSG_LEN + 1));
+
+    BufGuard g_buf;
+    g_buf.guard(msg_buf);
 
     if (!msg_buf) {
         std::cerr << "error: failed to allocate msg_buf" << std::endl;
@@ -88,6 +74,9 @@ main(int    argc,
             std::cerr << "error: ossl_accept failed" << std::endl;
             continue;
         }
+
+        tls::OSSLConnGuard g_ssl(ssl);
+        g_ssl.needs_shutdown();
 
         memset(msg_buf, '\0', TLSPP_MSG_LEN + 1);
 
@@ -122,11 +111,6 @@ main(int    argc,
                 continue;
             }
         }
-    }
-
-    if (msg_buf) {
-        free(msg_buf);
-        msg_buf = 0;
     }
 
     return EXIT_SUCCESS;
