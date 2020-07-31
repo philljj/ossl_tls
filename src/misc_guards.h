@@ -34,7 +34,7 @@ public:
     void guard(void * buf) { buf_ = buf; }
 
 private:
-    void * buf_ = 0; 
+    void * buf_ = 0;
 };
 
-#endif /* if !defined(MISC_GUARDS_H) */ 
+#endif /* if !defined(MISC_GUARDS_H) */

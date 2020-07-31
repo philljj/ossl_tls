@@ -165,6 +165,6 @@ new_server_socket(int port)
     }
 
     g_server.release();
-    
+
     return sock_fd;
 }
