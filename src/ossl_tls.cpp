@@ -11,6 +11,11 @@
 
 #include "ossl_tls.h"
 
+// From OpenSSL, openssl-ciphers:
+//   HIGH :"High" encryption cipher suites. This currently means those with key
+//   lengths larger than 128 bits, and some cipher suites with 128-bit keys.
+#define DEFAULT_CIPHERS "HIGH"
+
 static bool ossl_new_client_ctx(void);
 static bool ossl_new_server_ctx(void);
 static void ossl_get_err_str(char * errstr);
@@ -22,6 +27,7 @@ static std::string tls_key_file;
 static std::string tls_ca_file;
 static SSL_CTX *   client_ctx = 0;
 static SSL_CTX *   server_ctx = 0;
+static std::string cipher_list = DEFAULT_CIPHERS;
 static bool        verify_peer = true;
 static bool        verify_host = true;
 const static int   server_verify = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
@@ -31,13 +37,18 @@ const static long  server_options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3
 
 
 bool
-tls::tls_init(bool ver_peer,
-              bool ver_host)
+tls::tls_init(bool         ver_peer,
+              bool         ver_host,
+              const char * req_cipher_list)
 {
     if (!tls_initialized) {
         SSL_library_init();
         SSL_load_error_strings();
         ERR_load_crypto_strings();
+
+        if (req_cipher_list) {
+            cipher_list = req_cipher_list;
+        }
 
         if (!get_pem_from_env(tls_key_file, "TLS_KEY_FILE")) { return false; }
         if (!get_pem_from_env(tls_ca_file, "TLS_CA_FILE")) { return false; }
@@ -79,12 +90,16 @@ tls::tls_client_init(bool ver_peer,
 
 
 bool
-tls::tls_server_init(void)
+tls::tls_server_init(const char * req_cipher_list)
 {
     if (!tls_initialized) {
         SSL_library_init();
         SSL_load_error_strings();
         ERR_load_crypto_strings();
+
+        if (req_cipher_list) {
+            cipher_list = req_cipher_list;
+        }
 
         if (!get_pem_from_env(tls_key_file, "TLS_KEY_FILE")) { return false; }
         if (!get_pem_from_env(tls_ca_file, "TLS_CA_FILE")) { return false; }
@@ -190,11 +205,18 @@ ossl_new_server_ctx(void)
     SSL_CTX_set_options(server_ctx, server_options);
     SSL_CTX_set_verify(server_ctx, server_verify, 0);
 
+    if (SSL_CTX_set_cipher_list(server_ctx, cipher_list.c_str()) <= 0) {
+        ossl_get_err_str(errstr);
+        std::cerr << "error: set cipher list failed: " << cipher_list
+                  << ": " << errstr << std::endl;
+        return false;
+    }
+
     if (SSL_CTX_use_certificate_chain_file(server_ctx,
                                            tls_ca_file.c_str()) <= 0) {
         ossl_get_err_str(errstr);
         std::cerr << "error: load verify failed: " << tls_ca_file << ": "
-             << errstr << std::endl;
+                  << errstr << std::endl;
         return false;
     }
 
@@ -205,7 +227,7 @@ ossl_new_server_ctx(void)
                                     SSL_FILETYPE_PEM) <= 0) {
         ossl_get_err_str(errstr);
         std::cerr << "error: SSL_CTX_use_PrivateKey_file failed: " << tls_key_file
-             << ": " << errstr << std::endl;
+                  << ": " << errstr << std::endl;
         return false;
     }
 

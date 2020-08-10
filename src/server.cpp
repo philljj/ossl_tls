@@ -19,7 +19,7 @@ int
 main(int    argc,
      char * argv[])
 {
-    if (argc != 2) {
+    if (argc != 2 && argc != 3) {
         print_usage_and_die();
     }
 
@@ -35,22 +35,29 @@ main(int    argc,
         print_usage_and_die();
     }
 
+    const char * cipher_list = 0;
+
+    if (argc == 3) {
+        cipher_list = argv[2];
+    }
+
     SockGuard g_server;
     g_server.guard(sock_fd);
 
-    if (!tls::tls_init(true, true)) {
+    if (!tls::tls_init(true, true, cipher_list)) {
         std::cerr << "error: tls_init failed" << std::endl;
         return EXIT_FAILURE;
     }
 
     char * msg_buf = static_cast<char *>(malloc(TLSPP_MSG_LEN + 1));
 
-    BufGuard g_buf;
-    g_buf.guard(msg_buf);
-
     if (!msg_buf) {
         std::cerr << "error: failed to allocate msg_buf" << std::endl;
+        return EXIT_FAILURE;
     }
+
+    BufGuard g_buf;
+    g_buf.guard(msg_buf);
 
     for (;;) {
         struct sockaddr_in addr;
@@ -121,8 +128,11 @@ main(int    argc,
 static void
 print_usage_and_die(void)
 {
-    std::cerr << "usage:" << std::endl;
-    std::cerr << "  tls_server <port>" << std::endl;
+    std::cerr << "usage:" << std::endl
+              << "  tls_server <port> [cipher list]" << std::endl
+              << std::endl
+              << "notes:" << std::endl
+              << "  cipher list defaults to \"HIGH\"" << std::endl;
 
     exit(EXIT_FAILURE);
 }

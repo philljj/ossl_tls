@@ -10,9 +10,9 @@
 
 namespace tls {
 
-    bool  tls_init(bool ver_peer, bool ver_host);
+    bool  tls_init(bool ver_peer, bool ver_host, const char *req_cipher_list);
     bool  tls_client_init(bool ver_peer, bool ver_host);
-    bool  tls_server_init(void);
+    bool  tls_server_init(const char * req_cipher_list);
     void  tls_cleanup(void);
     bool  ossl_connect(SSL *&ssl, int sock_fd,
                        const char * host);
