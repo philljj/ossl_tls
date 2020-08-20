@@ -24,7 +24,6 @@ Notes:
     info: cipher CAMELLIA256-SHA worked
     info: cipher AES128-SHA worked
     info: cipher CAMELLIA128-SHA worked
-    info: cipher DES-CBC3-SHA worked
 
   and:
     $ ./scripts/test_protos `hostname` 7777
